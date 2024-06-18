@@ -22,5 +22,5 @@ CERTBOT_MODE="--dry-run"
 ```
 
 #
-> :bulb: **Tip:** Thanks tteck -
+> :bulb: **Thanks to:**  tteck -
 Inspierd by: proxmox VE Helper-Scripts (https://tteck.github.io/)
