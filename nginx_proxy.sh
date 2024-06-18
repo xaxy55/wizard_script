@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(cat build.func.sh)
+source <(cat ./misc/build.func.sh)
 # Copyright (c) 2021-2024 tteck
 # Author: tteck (tteckster)
 # Moded author: xaxy55
