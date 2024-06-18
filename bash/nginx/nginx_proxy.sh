@@ -21,10 +21,16 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Nginx"
-var_domain=""
-var_mode="--dry-run"
 CF_TOKEN_FILE="/etc/letsencrypt/cloudflare.ini"
+MAIL=""
+DOMAIN=""
+CERTBOT_MODE=""
 variables
+CONFIG_FILE="env.sh" # MARK: domain and other default parameter can be added here
+if [[ -f "$CONFIG_FILE" ]]; then
+    # Source the configuration file
+    source "$CONFIG_FILE"
+fi
 color
 catch_errors
 
@@ -63,9 +69,10 @@ function app_new_config_script() {
     exit 1
   fi
 
-  msg_ok "New proxy host ${PROXYHOSTNAME}.${var_domain}"
+  msg_ok "New proxy host ${PROXYHOSTNAME}.${DOMAIN}"
   check_cf_token_script
 
+  app_new_token_script
   msg_ok "Added ${APP} proxy host config"
   exit 0
 }
@@ -106,6 +113,31 @@ function app_new_token_script() {
     echo "$START_TOKEN_FILE$TOKEN" >> $CF_TOKEN_FILE
     msg_ok "Created new token file"
   fi
+}
+
+function app_new_token_script() {
+  msg_info "Configure Certbot ssl cert for ${APP}"
+
+  if [ -z "$MAIL" ]; then
+    MAIL=$(whiptail --backtitle "Certbot" --inputbox "Enter certbot email" --title "Cert Bot email" 10 58 3>&1 1>&2 2>&3)
+    if [ $? -ne 0 ]; then
+      clear
+      msg_error -e "⚠  User exited script \n"
+      exit 1
+    fi
+  fi
+  if [ -z "$CERTBOT_MODE" ]; then
+    if whiptail --backtitle "Certbot" --title "Certbot create cert" --yesno "Do want run in dry mode?" 10 58; then
+      CERTBOT_MODE="--dry-run"
+    fi
+  fi
+  PROXYTARGET="${PROXYHOSTNAME}.${DOMAIN}"
+  # Display the chosen values
+  msg_ok "Email: $MAIL"
+  msg_ok "Mode: $CERTBOT_MODE"
+  msg_ok "Target: $PROXYTARGET"
+  # certbot certonly --dns-cloudflare --dns-cloudflare-credentials $CF_TOKEN_FILE --agree-tos -d $PROXYTARGET -m $MAIL $CERTBOT_MODE
+  msg_ok "Create cert for: $PROXYTARGET"
 }
 
 start
